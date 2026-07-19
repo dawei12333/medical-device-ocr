@@ -555,6 +555,7 @@ body {
 
 <!-- Scripts -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://imgcache.qq.com/qzone/cloudbase-js-sdk/1.7.0/cloudbase.full.js"></script>
 <script>
 // ============================================================
 // 智能医疗设备盘点 APP - 核心脚本
@@ -669,13 +670,23 @@ function handleImageSelect(event) {
   reader.readAsDataURL(file);
 }
 
-// ============ OCR 引擎（腾讯云） ============
+// ============ OCR 引擎（腾讯云 CloudBase） ============
 
-// CloudBase 云函数地址 — 部署后把 YOUR_ENV_ID 替换为实际环境ID
+// CloudBase 环境 ID
 const CLOUDBASE_ENV_ID = 'medical-ocr-d6gkxjm7m08ab69f1';
-const OCR_API_URL = (CLOUDBASE_ENV_ID !== 'YOUR_ENV_ID')
-  ? `https://${CLOUDBASE_ENV_ID}.service.tcloudbase.com/ocr`
-  : '/api/ocr';
+
+let cloudbaseApp = null;
+async function getCloudbaseApp() {
+  if (!cloudbaseApp) {
+    const cloudbase = window.cloudbase;
+    cloudbaseApp = cloudbase.init({
+      env: CLOUDBASE_ENV_ID,
+    });
+    // 匿名登录
+    await cloudbaseApp.auth().signInAnonymously();
+  }
+  return cloudbaseApp;
+}
 
 async function startOCR() {
   if (!AppState.currentImageDataUrl) {
@@ -687,31 +698,26 @@ async function startOCR() {
   AppState.ocrInProgress = true;
 
   document.getElementById('ocrOverlay').style.display = 'flex';
-  document.getElementById('ocrProgressText').textContent = '正在上传到云端识别...';
+  document.getElementById('ocrProgressText').textContent = '正在连接云函数...';
   document.getElementById('ocrProgressFill').style.width = '10%';
   document.getElementById('ocrSubText').textContent = '调用腾讯云OCR（通用印刷体识别）';
 
   try {
     document.getElementById('ocrProgressText').textContent = '正在识别中...';
-    document.getElementById('ocrProgressFill').style.width = '30%';
+    document.getElementById('ocrProgressFill').style.width = '40%';
 
-    const resp = await fetch(OCR_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: AppState.currentImageDataUrl }),
+    const app = await getCloudbaseApp();
+    const result = await app.callFunction({
+      name: 'ocr',
+      data: { image: AppState.currentImageDataUrl },
     });
 
-    if (!resp.ok) {
-      const errData = await resp.json().catch(() => ({}));
-      throw new Error(errData.detail || errData.error || `服务器错误 (HTTP ${resp.status})`);
-    }
-
     document.getElementById('ocrProgressText').textContent = '云端识别完成，正在提取字段...';
-    document.getElementById('ocrProgressFill').style.width = '80%';
+    document.getElementById('ocrProgressFill').style.width = '85%';
 
-    const data = await resp.json();
-    if (!data.success) {
-      throw new Error(data.error || 'OCR识别失败');
+    const data = result.result;
+    if (!data || !data.success) {
+      throw new Error((data && data.error) || 'OCR识别失败');
     }
 
     AppState.currentOcrText = data.text;
