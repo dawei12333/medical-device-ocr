@@ -1,0 +1,66 @@
+{
+  "envId": "{{env.ENV_ID}}",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "ocr",
+      "timeout": 30,
+      "runtime": "Nodejs18.15",
+      "memorySize": 256,
+      "triggers": [
+        {
+          "name": "http",
+          "type": "timer",
+          "config": "0 */5 * * * * *"
+        }
+      ],
+      "envVariables": {
+        "TENCENT_SECRET_ID": "",
+        "TENCENT_SECRET_KEY": "",
+        "OCR_REGION": "ap-guangzhou"
+      }
+    }
+  ],
+  "framework": {
+    "name": "medical-device-ocr",
+    "plugins": {
+      "client": {
+        "use": "@cloudbase/framework-plugin-website",
+        "inputs": {
+          "buildCommand": "",
+          "outputPath": "./",
+          "cloudPath": "/",
+          "ignore": [
+            ".git",
+            "node_modules",
+            "cloudfunctions",
+            ".env",
+            "server.js",
+            "render.yaml",
+            "package.json",
+            "package-lock.json"
+          ]
+        }
+      },
+      "server": {
+        "use": "@cloudbase/framework-plugin-function",
+        "inputs": {
+          "functionRootPath": "cloudfunctions",
+          "functions": [
+            {
+              "name": "ocr",
+              "timeout": 30,
+              "runtime": "Nodejs18.15",
+              "memorySize": 256,
+              "envVariables": {
+                "TENCENT_SECRET_ID": "",
+                "TENCENT_SECRET_KEY": "",
+                "OCR_REGION": "ap-guangzhou"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

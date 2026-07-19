@@ -670,35 +670,32 @@ function handleImageSelect(event) {
 }
 
 // ============ OCR 引擎（腾讯云） ============
+
+// CloudBase 云函数地址 — 部署后把 YOUR_ENV_ID 替换为实际环境ID
+const CLOUDBASE_ENV_ID = 'YOUR_ENV_ID';
+const OCR_API_URL = (CLOUDBASE_ENV_ID !== 'YOUR_ENV_ID')
+  ? `https://${CLOUDBASE_ENV_ID}.service.tcloudbase.com/ocr`
+  : '/api/ocr';
+
 async function startOCR() {
   if (!AppState.currentImageDataUrl) {
     showToast('请先拍摄设备铭牌照片', 'warning');
     return;
   }
 
-  // 检查服务是否就绪
-  if (!AppState.serverReady) {
-    await checkServerHealth();
-    if (!AppState.serverReady) {
-      document.getElementById('ocrOverlay').style.display = 'none';
-      showToast('OCR代理服务未启动，请先执行：npm install && npm start', 'error');
-      return;
-    }
-  }
-
   if (AppState.ocrInProgress) return;
   AppState.ocrInProgress = true;
 
   document.getElementById('ocrOverlay').style.display = 'flex';
-  document.getElementById('ocrProgressText').textContent = '正在预处理图像...';
+  document.getElementById('ocrProgressText').textContent = '正在上传到云端识别...';
   document.getElementById('ocrProgressFill').style.width = '10%';
   document.getElementById('ocrSubText').textContent = '调用腾讯云OCR（通用印刷体识别）';
 
   try {
-    document.getElementById('ocrProgressText').textContent = '正在上传到云端识别...';
+    document.getElementById('ocrProgressText').textContent = '正在识别中...';
     document.getElementById('ocrProgressFill').style.width = '30%';
 
-    const resp = await fetch('/api/ocr', {
+    const resp = await fetch(OCR_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: AppState.currentImageDataUrl }),

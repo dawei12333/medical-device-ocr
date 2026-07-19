@@ -1,0 +1,9 @@
+{
+  "name": "ocr",
+  "version": "1.0.0",
+  "description": "OCR cloud function for medical device nameplate recognition",
+  "main": "index.js",
+  "dependencies": {
+    "tencentcloud-sdk-nodejs": "^4.0.700"
+  }
+}
