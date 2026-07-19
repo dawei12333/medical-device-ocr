@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#1a73e8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>智能医疗设备盘点 v3.0</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root {
+  --primary: #1a73e8;
+  --primary-dark: #1557b0;
+  --primary-light: #e8f0fe;
+  --success: #0d9488;
+  --success-light: #e6f7f5;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --danger: #ef4444;
+  --danger-light: #fee2e2;
+  --bg: #f0f4f8;
+  --card: #ffffff;
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --border: #e2e8f0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+  --nav-height: 64px;
+  --header-height: 56px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Header ===== */
+.app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--primary);
+  color: #fff;
+  height: var(--header-height);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  box-shadow: 0 2px 8px rgba(26,115,232,0.2);
+}
+.app-header h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.5px; }
+.header-actions { display: flex; gap: 8px; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: none; background: rgba(255,255,255,0.2);
+  color: #fff; font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.icon-btn:active { background: rgba(255,255,255,0.35); }
+
+/* ===== Main Content ===== */
+.main-content {
+  padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 16px);
+  min-height: calc(100vh - var(--header-height) - var(--nav-height));
+}
+.tab-content { display: none; padding: 16px; }
+.tab-content.active { display: block; }
+
+/* ===== Bottom Nav ===== */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex; height: var(--nav-height);
+  padding-bottom: var(--safe-bottom);
+  box-shadow: 0 -1px 6px rgba(0,0,0,0.04);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border: none; background: none; cursor: pointer;
+  color: var(--text-muted); font-size: 11px; gap: 4px;
+  transition: color 0.2s; position: relative;
+}
+.nav-item .nav-icon { font-size: 22px; line-height: 1; }
+.nav-item.active { color: var(--primary); }
+.nav-item.active::after {
+  content: ''; position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 24px; height: 3px; border-radius: 0 0 3px 3px;
+  background: var(--primary);
+}
+.nav-badge {
+  position: absolute; top: 6px; right: calc(50% - 24px);
+  background: var(--danger); color: #fff;
+  font-size: 10px; min-width: 18px; height: 18px;
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  padding: 0 5px; font-weight: 600;
+}
+
+/* ===== Cards ===== */
+.card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 16px; margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.card-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+
+/* ===== Camera Zone ===== */
+.camera-zone {
+  background: var(--card); border-radius: var(--radius);
+  overflow: hidden; box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.camera-placeholder {
+  aspect-ratio: 4/3; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #e8f0fe 0%, #dbeafe 100%);
+  color: var(--primary); cursor: pointer; position: relative;
+  border: 2px dashed var(--primary);
+  border-radius: var(--radius);
+  transition: all 0.2s;
+}
+.camera-placeholder:active { background: #dbeafe; transform: scale(0.99); }
+.camera-placeholder.has-image { border-style: solid; border-color: var(--success); }
+.camera-placeholder img {
+  width: 100%; height: 100%; object-fit: contain;
+  position: absolute; top: 0; left: 0;
+}
+.camera-icon { font-size: 48px; margin-bottom: 8px; }
+.camera-text { font-size: 14px; font-weight: 500; }
+.camera-subtext { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 12px 24px; border-radius: var(--radius-sm);
+  border: none; font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--primary); color: #fff; width: 100%; }
+.btn-primary:active { background: var(--primary-dark); }
+.btn-primary:disabled { background: var(--text-muted); cursor: not-allowed; transform: none; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-outline {
+  background: #fff; color: var(--primary);
+  border: 1.5px solid var(--primary);
+}
+.btn-sm { padding: 8px 14px; font-size: 13px; }
+.btn-xs { padding: 4px 10px; font-size: 12px; border-radius: var(--radius-xs); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-group { display: flex; gap: 8px; margin-top: 12px; }
+.btn-group .btn { flex: 1; }
+
+/* ===== Result Fields ===== */
+.field-grid { display: flex; flex-direction: column; gap: 10px; }
+.field-item {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 12px; background: #f8fafc;
+  border-radius: var(--radius-sm); border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+.field-item:focus-within { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); }
+.field-label {
+  font-size: 11px; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  display: flex; align-items: center; gap: 6px;
+}
+.field-label .status-icon { font-size: 14px; }
+.field-value {
+  font-size: 14px; color: var(--text); word-break: break-all;
+  line-height: 1.5;
+}
+.field-input {
+  width: 100%; border: none; background: transparent;
+  font-size: 14px; color: var(--text); font-family: inherit;
+  outline: none; padding: 2px 0;
+}
+.field-missing { color: var(--danger); font-style: italic; }
+.field-hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.field-verified { border-left: 3px solid var(--success); }
+.field-warning { border-left: 3px solid var(--warning); }
+.field-error { border-left: 3px solid var(--danger); }
+
+/* ===== Device List ===== */
+.search-bar {
+  display: flex; gap: 8px; margin-bottom: 12px;
+}
+.search-input {
+  flex: 1; padding: 10px 14px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); font-size: 14px;
+  background: var(--card); outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--primary); }
+.device-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 14px; margin-bottom: 10px;
+  box-shadow: var(--shadow); cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  border-left: 4px solid var(--primary);
+}
+.device-card:active { transform: scale(0.985); }
+.device-card-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 8px;
+}
+.device-name-text { font-size: 15px; font-weight: 600; color: var(--text); flex: 1; }
+.device-model { font-size: 13px; color: var(--text-secondary); }
+.device-card-meta {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px;
+  font-size: 12px; color: var(--text-secondary);
+}
+.device-card-meta span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.device-card-status {
+  display: inline-block; padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; font-weight: 600;
+}
+.status-normal { background: var(--success-light); color: var(--success); }
+.status-warning { background: var(--warning-light); color: #b45309; }
+.status-expired { background: var(--danger-light); color: var(--danger); }
+.empty-state {
+  text-align: center; padding: 48px 16px; color: var(--text-muted);
+}
+.empty-state .empty-icon { font-size: 56px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* ===== Export Section ===== */
+.stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.stat-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 14px; text-align: center; box-shadow: var(--shadow);
+}
+.stat-number { font-size: 28px; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+/* ===== OCR Progress Overlay ===== */
+.ocr-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.6); display: flex;
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.ocr-dialog {
+  background: var(--card); border-radius: var(--radius);
+  padding: 28px 24px; width: 85%; max-width: 340px;
+  text-align: center; box-shadow: var(--shadow-lg);
+}
+.ocr-spinner {
+  width: 48px; height: 48px; margin: 0 auto 16px;
+  border: 4px solid var(--border); border-top-color: var(--primary);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.ocr-progress-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 4px; }
+.ocr-progress-bar {
+  height: 4px; background: var(--border); border-radius: 2px;
+  margin-top: 12px; overflow: hidden;
+}
+.ocr-progress-fill {
+  height: 100%; background: var(--primary); border-radius: 2px;
+  transition: width 0.3s ease; width: 0%;
+}
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+  z-index: 300; padding: 10px 20px; border-radius: 20px;
+  font-size: 13px; font-weight: 500; color: #fff;
+  animation: toastIn 0.3s ease;
+  pointer-events: none;
+}
+.toast-success { background: var(--success); }
+.toast-error { background: var(--danger); }
+.toast-warning { background: var(--warning); color: #1e293b; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ===== Detail Modal ===== */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.5); display: flex;
+  align-items: flex-end; justify-content: center;
+}
+.modal-sheet {
+  background: var(--card); border-radius: var(--radius) var(--radius) 0 0;
+  width: 100%; max-height: 85vh; overflow-y: auto;
+  padding: 20px 16px;
+  padding-bottom: calc(20px + var(--safe-bottom));
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-handle {
+  width: 36px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 0 auto 16px;
+}
+.modal-actions {
+  display: flex; gap: 8px; margin-top: 16px;
+  position: sticky; bottom: 0; background: var(--card);
+  padding-top: 12px;
+}
+
+/* ===== Section Divider ===== */
+.section-title {
+  font-size: 13px; font-weight: 600; color: var(--text-secondary);
+  margin: 20px 0 10px; padding-left: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* ===== Confirm Dialog ===== */
+.confirm-overlay {
+  position: fixed; inset: 0; z-index: 250;
+  background: rgba(0,0,0,0.5); display: flex;
+  align-items: center; justify-content: center;
+}
+.confirm-dialog {
+  background: var(--card); border-radius: var(--radius);
+  padding: 24px; width: 80%; max-width: 320px;
+  text-align: center; box-shadow: var(--shadow-lg);
+}
+.confirm-dialog h3 { font-size: 16px; margin-bottom: 8px; }
+.confirm-dialog p { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+.confirm-actions { display: flex; gap: 10px; }
+.confirm-actions .btn { flex: 1; }
+
+/* ===== Import Zone ===== */
+.import-zone {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 24px; text-align: center; cursor: pointer;
+  transition: border-color 0.2s;
+  margin-bottom: 16px;
+}
+.import-zone:active { border-color: var(--primary); background: var(--primary-light); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <h1>🏥 医疗设备盘点 <span style="font-size:10px;background:rgba(255,255,255,0.25);padding:2px 6px;border-radius:8px;margin-left:4px;vertical-align:middle;">v3.0</span></h1>
+  <div class="header-actions">
+    <button class="icon-btn" onclick="forceReload()" title="强制刷新">⟳</button>
+    <button class="icon-btn" onclick="showHelp()" title="帮助">?</button>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+  <!-- Tab: 拍照识别 -->
+  <div id="tab-scan" class="tab-content active">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>拍摄设备铭牌</div>
+      <div class="camera-zone">
+        <div class="camera-placeholder" id="cameraPlaceholder" onclick="triggerCamera()">
+          <span class="camera-icon">📷</span>
+          <span class="camera-text">点击拍摄铭牌</span>
+          <span class="camera-subtext">支持拍照或从相册选择</span>
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelect(event)">
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btnRecognize" disabled onclick="startOCR()">
+        🔍 开始识别
+      </button>
+      <p style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;">
+        提示：请确保铭牌清晰完整，光线充足
+      </p>
+    </div>
+
+    <!-- Quick Demo -->
+    <div class="card" style="margin-top:12px;">
+      <div class="card-title"><span class="dot"></span>快速体验</div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
+        没有设备铭牌照片？使用演示数据快速体验完整流程：
+      </p>
+      <button class="btn btn-outline" onclick="loadDemoData()" style="width:100%;">
+        📋 加载演示数据
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab: 设备列表 -->
+  <div id="tab-list" class="tab-content">
+    <div class="search-bar">
+      <input type="text" class="search-input" id="searchInput" placeholder="🔍 搜索设备名称/型号/厂家..." oninput="renderDeviceList()">
+    </div>
+    <div id="deviceListContainer">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>暂无设备记录</p>
+        <p style="font-size:12px;color:var(--text-muted);">拍照识别设备铭牌后自动添加</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: 数据管理 -->
+  <div id="tab-export" class="tab-content">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number" id="statTotal">0</div>
+        <div class="stat-label">设备总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statNearExpire">0</div>
+        <div class="stat-label">即将报废(<1年)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>导出数据</div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
+        将所有设备信息导出为Excel表格文件
+      </p>
+      <button class="btn btn-primary" onclick="exportToExcel()" id="btnExport" disabled>
+        📥 导出为Excel (.xlsx)
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>导入数据</div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
+        从Excel文件导入设备信息（支持批量导入）
+      </p>
+      <div class="import-zone" onclick="document.getElementById('importFileInput').click()">
+        <div style="font-size:32px;margin-bottom:8px;">📤</div>
+        <div style="font-size:14px;color:var(--text-secondary);">点击选择Excel文件</div>
+      </div>
+      <input type="file" id="importFileInput" accept=".xlsx,.xls" style="display:none" onchange="importFromExcel(event)">
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>数据管理</div>
+      <div class="btn-group">
+        <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">
+          🗑 清空所有数据
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="loadDemoData()">
+          📋 加载演示数据
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-tab="scan" onclick="switchTab('scan')">
+    <span class="nav-icon">📸</span>
+    <span>拍照识别</span>
+  </button>
+  <button class="nav-item" data-tab="list" onclick="switchTab('list')">
+    <span class="nav-icon">📋</span>
+    <span>设备列表</span>
+    <span class="nav-badge" id="listBadge" style="display:none">0</span>
+  </button>
+  <button class="nav-item" data-tab="export" onclick="switchTab('export')">
+    <span class="nav-icon">📊</span>
+    <span>数据管理</span>
+  </button>
+</nav>
+
+<!-- OCR Progress Overlay -->
+<div id="ocrOverlay" class="ocr-overlay" style="display:none;">
+  <div class="ocr-dialog">
+    <div class="ocr-spinner"></div>
+    <div class="ocr-progress-text" id="ocrProgressText">正在初始化OCR引擎...</div>
+    <div style="font-size:12px;color:var(--text-muted);" id="ocrSubText">首次加载可能需要下载语言包</div>
+    <div class="ocr-progress-bar">
+      <div class="ocr-progress-fill" id="ocrProgressFill"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Result Edit Modal -->
+<div id="resultModal" class="modal-overlay" style="display:none;">
+  <div class="modal-sheet" id="resultSheet">
+    <div class="modal-handle"></div>
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:4px;">识别结果</h2>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+      请核对并修正以下信息，确认无误后保存
+    </p>
+    <div class="field-grid" id="resultFields"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeResultModal(false)">取消</button>
+      <button class="btn btn-success" onclick="saveDevice()">💾 确认保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detailModal" class="modal-overlay" style="display:none;">
+  <div class="modal-sheet" id="detailSheet"></div>
+</div>
+
+<!-- Confirm Dialog -->
+<div id="confirmDialog" class="confirm-overlay" style="display:none;">
+  <div class="confirm-dialog">
+    <h3 id="confirmTitle">确认操作</h3>
+    <p id="confirmMsg"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-outline" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-danger" id="confirmBtn" onclick="executeConfirm()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- Help Dialog -->
+<div id="helpDialog" class="modal-overlay" style="display:none;">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;">使用帮助</h2>
+    <div style="font-size:14px;line-height:1.8;color:var(--text-secondary);">
+      <p><strong>1. 拍照识别</strong></p>
+      <p>点击拍摄区域，对设备铭牌拍照，系统自动识别8项关键信息。</p>
+      <p style="margin-top:12px;"><strong>2. 核对修正</strong></p>
+      <p>识别结果弹出后可手动修正，确认后保存到设备列表。</p>
+      <p style="margin-top:12px;"><strong>3. 导出Excel</strong></p>
+      <p>在"数据管理"页面可将全部设备信息导出为Excel文件。</p>
+      <p style="margin-top:12px;"><strong>4. 安装到桌面</strong></p>
+      <p>在浏览器菜单中选择"添加到主屏幕"，即可像原生APP一样使用。</p>
+      <p style="margin-top:12px;"><strong>5. 识别规则</strong></p>
+      <p>支持识别：设备名称、型号、生产日期、生产厂家、使用年限、报废时间（自动计算）、序列号、医疗器械注册证号。</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="document.getElementById('helpDialog').style.display='none'">知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script>
+// ============================================================
+// 智能医疗设备盘点 APP - 核心脚本
+// ============================================================
+
+// ============ 全局状态 ============
+const AppState = {
+  devices: [],
+  currentImageDataUrl: null,
+  currentProcessedImage: null,
+  currentOcrText: null,
+  currentExtractedData: null,
+  serverReady: false,  // OCR代理服务是否就绪
+  ocrInProgress: false,
+  currentTab: 'scan',
+  confirmCallback: null,
+  detailDeviceIndex: null
+};
+
+// ============ 初始化 ============
+const APP_VERSION = 'v3.0-2026-07-19';
+document.addEventListener('DOMContentLoaded', () => {
+  console.log(`%c📋 医疗设备盘点 ${APP_VERSION} 已加载`, 'background:#1a73e8;color:#fff;padding:4px 8px;border-radius:4px;font-size:14px;font-weight:bold;');
+  console.log('提取引擎: 8字段 + OCR规范化 + 3层降级');
+  console.log('OCR服务: 腾讯云 GeneralBasicOCR');
+
+  loadDevices();
+  updateStats();
+  renderDeviceList();
+  checkServerHealth();
+
+  // 注册Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+});
+
+// ============ 服务器健康检查 ============
+async function checkServerHealth() {
+  try {
+    const resp = await fetch('/api/health');
+    const data = await resp.json();
+    AppState.serverReady = data.ocrReady;
+    if (!data.ocrReady) {
+      console.warn('OCR服务未就绪:', data.message);
+    }
+  } catch {
+    AppState.serverReady = false;
+    console.warn('OCR代理服务未启动，请在项目目录执行: npm install && npm start');
+  }
+}
+
+// ============ Tab 切换 ============
+function switchTab(tab) {
+  AppState.currentTab = tab;
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelector(`.nav-item[data-tab="${tab}"]`).classList.add('active');
+
+  if (tab === 'list') renderDeviceList();
+  if (tab === 'export') updateStats();
+}
+
+// ============ 强制刷新（绕过Service Worker缓存） ============
+async function forceReload() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) {
+        await reg.unregister();
+        console.log('已注销Service Worker');
+      }
+    }
+    if (caches) {
+      const keys = await caches.keys();
+      for (const key of keys) {
+        await caches.delete(key);
+        console.log('已清除缓存:', key);
+      }
+    }
+  } catch (e) {
+    console.error('清理失败:', e);
+  }
+  // 加时间戳强制从网络加载
+  const newUrl = location.pathname + '?t=' + Date.now();
+  location.replace(newUrl);
+}
+
+// ============ 相机 / 图片选择 ============
+function triggerCamera() {
+  document.getElementById('cameraInput').click();
+}
+
+function handleImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (!file.type.startsWith('image/')) {
+    showToast('请选择图片文件', 'error');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    AppState.currentImageDataUrl = e.target.result;
+    const placeholder = document.getElementById('cameraPlaceholder');
+    placeholder.innerHTML = `<img src="${e.target.result}" alt="设备铭牌">`;
+    placeholder.classList.add('has-image');
+    document.getElementById('btnRecognize').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============ OCR 引擎（腾讯云） ============
+async function startOCR() {
+  if (!AppState.currentImageDataUrl) {
+    showToast('请先拍摄设备铭牌照片', 'warning');
+    return;
+  }
+
+  // 检查服务是否就绪
+  if (!AppState.serverReady) {
+    await checkServerHealth();
+    if (!AppState.serverReady) {
+      document.getElementById('ocrOverlay').style.display = 'none';
+      showToast('OCR代理服务未启动，请先执行：npm install && npm start', 'error');
+      return;
+    }
+  }
+
+  if (AppState.ocrInProgress) return;
+  AppState.ocrInProgress = true;
+
+  document.getElementById('ocrOverlay').style.display = 'flex';
+  document.getElementById('ocrProgressText').textContent = '正在预处理图像...';
+  document.getElementById('ocrProgressFill').style.width = '10%';
+  document.getElementById('ocrSubText').textContent = '调用腾讯云OCR（通用印刷体识别）';
+
+  try {
+    document.getElementById('ocrProgressText').textContent = '正在上传到云端识别...';
+    document.getElementById('ocrProgressFill').style.width = '30%';
+
+    const resp = await fetch('/api/ocr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: AppState.currentImageDataUrl }),
+    });
+
+    if (!resp.ok) {
+      const errData = await resp.json().catch(() => ({}));
+      throw new Error(errData.detail || errData.error || `服务器错误 (HTTP ${resp.status})`);
+    }
+
+    document.getElementById('ocrProgressText').textContent = '云端识别完成，正在提取字段...';
+    document.getElementById('ocrProgressFill').style.width = '80%';
+
+    const data = await resp.json();
+    if (!data.success) {
+      throw new Error(data.error || 'OCR识别失败');
+    }
+
+    AppState.currentOcrText = data.text;
+    document.getElementById('ocrProgressText').textContent = '正在提取字段...';
+    document.getElementById('ocrProgressFill').style.width = '90%';
+
+    // 提取字段（规则引擎不变）
+    AppState.currentExtractedData = extractAllFields(data.text);
+
+    document.getElementById('ocrProgressFill').style.width = '100%';
+    setTimeout(() => {
+      document.getElementById('ocrOverlay').style.display = 'none';
+      showResultModal(AppState.currentExtractedData);
+      AppState.ocrInProgress = false;
+    }, 300);
+  } catch (err) {
+    document.getElementById('ocrOverlay').style.display = 'none';
+    AppState.ocrInProgress = false;
+    console.error('Cloud OCR Error:', err);
+
+    // 给出针对性的错误提示
+    const msg = err.message || '未知错误';
+    if (msg.includes('服务器错误') || msg.includes('Failed to fetch')) {
+      showToast('无法连接OCR服务，请确认已执行 npm start', 'error');
+    } else if (msg.includes('未配置')) {
+      showToast('请在 .env 文件中配置腾讯云API密钥后重启服务', 'error');
+    } else {
+      showToast('识别失败：' + msg, 'error');
+    }
+  }
+}
+
+// ============================================================
+// 字段提取规则引擎
+// ============================================================
+
+// OCR文本规范化：修复医疗设备铭牌高频字段标签的常见字符混淆
+// 这是提取引擎前的"清洗层"，避免单字符错误（如期→湖）导致整个字段匹配失败
+function normalizeOCRText(text) {
+  if (!text) return text;
+  let normalized = text;
+
+  // 词级纠正（高优先，限定在铭牌高频字段）
+  const wordCorrections = [
+    // 生产日期（含多种误识别变体）
+    [/生产日湖/g, '生产日期'],
+    [/生产日朗/g, '生产日期'],
+    [/生产日期/g, '生产日期'],
+    [/生严日期/g, '生产日期'],
+    [/生声日期/g, '生产日期'],
+    [/出严日期/g, '出厂日期'],
+    [/出产日期/g, '生产日期'],
+    [/生当日期/g, '生产日期'],
+    [/出\)日期/g, '生产日期'],
+    // 出厂日期（铭牌常见标签，OCR易误读）
+    [/出\)日期/g, '出厂日期'],
+    [/出厂日湖/g, '出厂日期'],
+    [/出厶日期/g, '出厂日期'],
+    [/出厶日湖/g, '出厂日期'],
+    [/出厶/g, '出厂'],
+    // 制造日期
+    [/制造日湖/g, '制造日期'],
+    [/制造日朗/g, '制造日期'],
+    // 医疗器械
+    [/医疔器械/g, '医疗器械'],
+    [/医疔设备/g, '医疗设备'],
+    [/医广器械/g, '医疗器械'],
+    // 注册证号
+    [/注册证编矍/g, '注册证编号'],
+    [/注册证编亏/g, '注册证编号'],
+    [/注册编矍/g, '注册编号'],
+    [/注册证纰/g, '注册证编'],
+    [/注珊/g, '注册'],
+    // 型号
+    [/型亏/g, '型号'],
+    // 名称
+    [/产品名棉/g, '产品名称'],
+    [/设备名棉/g, '设备名称'],
+    [/仪器名棉/g, '仪器名称'],
+    [/名棉/g, '名称'],
+    // 生产企业
+    [/生产企叶/g, '生产企业'],
+    [/企业名棉/g, '企业名称'],
+    // 使用期限
+    [/使用期阷/g, '使用期限'],
+    [/使用年阷/g, '使用年限'],
+    [/使用寿命/g, '使用期限'],
+    // 序列号
+    [/序列编矍/g, '序列号'],
+    [/产品编矍/g, '产品编号'],
+    [/产品编亏/g, '产品编号'],
+    [/设备编矍/g, '设备编号'],
+    [/设备编亏/g, '设备编号'],
+    [/出\)编矍/g, '出厂编号'],
+    // 单字修复
+    [/日湖/g, '日期'],
+    [/日朗/g, '日期'],
+    [/编矍/g, '编号'],
+    [/名棉/g, '名称'],
+    [/阷限/g, '期限'],
+    [/企叶/g, '企业'],
+  ];
+
+  for (const [pattern, replacement] of wordCorrections) {
+    if (pattern && replacement) {
+      normalized = normalized.replace(pattern, replacement);
+    }
+  }
+
+  // 易混淆字符统一修复（按字段上下文）
+  // 序列号/编号中的字母数字归一
+  normalized = normalized
+    .replace(/[！!]/g, '!')   // 全角!
+    .replace(/[（(]/g, '(')
+    .replace(/[）)]/g, ')')
+    // 清除零宽字符
+    .replace(/[\u200B-\u200D\uFEFF]/g, '');
+
+  return normalized;
+}
+
+function extractAllFields(text) {
+  if (!text || text.trim().length === 0) {
+    return getEmptyFields();
+  }
+
+  // 先做OCR文本规范化，再清洗
+  const normalized = normalizeOCRText(text);
+  const cleaned = normalized.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const lines = cleaned.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+  const deviceName = extractDeviceName(cleaned, lines);
+  const deviceModel = extractDeviceModel(cleaned, lines);
+  const productionDate = extractProductionDate(cleaned, lines);
+  const manufacturer = extractManufacturer(cleaned, lines);
+  const serviceLife = extractServiceLife(cleaned, lines);
+  const disposalDate = calculateDisposalDate(productionDate.value, serviceLife.value);
+  const serialNumber = extractSerialNumber(cleaned, lines);
+  const registrationNo = extractRegistrationNumber(cleaned, lines);
+
+  return {
+    deviceName, deviceModel, productionDate,
+    manufacturer, serviceLife, disposalDate,
+    serialNumber, registrationNo
+  };
+}
+
+function getEmptyFields() {
+  return {
+    deviceName: { value: '', source: '', confidence: 'low', status: 'missing' },
+    deviceModel: { value: '', source: '', confidence: 'low', status: 'missing' },
+    productionDate: { value: '', source: '', confidence: 'low', status: 'missing' },
+    manufacturer: { value: '', source: '', confidence: 'low', status: 'missing' },
+    serviceLife: { value: '', source: '', confidence: 'low', status: 'missing' },
+    disposalDate: { value: '', source: 'calculated', confidence: 'low', status: 'missing' },
+    serialNumber: { value: '', source: '', confidence: 'low', status: 'missing' },
+    registrationNo: { value: '', source: '', confidence: 'low', status: 'missing' }
+  };
+}
+
+// 一、设备名称识别
+function extractDeviceName(text, lines) {
+  // 防串扰：如果是注册证号/序列号/公司行，不能作为设备名
+  const isLikelyNotName = (s) => {
+    if (!s) return true;
+    if (/(?:国械注|国食药监械|注册证|证书编号|注册号|^\d{8,}$|证书|证号)/.test(s)) return true;
+    if (/^[A-Z]{2,}[\.\s]*(?:CO|LTD|LLC|INC|GMBH|CORP)/i.test(s)) return true; // 公司行
+    if (/(?:输入电源|安全类型|运行方式|产品标准|生产(者)?地址|^[A-Z]+[-\/]\d)/.test(s)) return true;
+    return false;
+  };
+
+  const patterns = [
+    // 中文关键词
+    /(?:设备名称|产品名称|器械名称|仪器名称|商品名称|产品名|器械名|设备名)[:：\s]*([^\n]{2,60})/,
+    // 英文关键词
+    /(?:Device\s*Name|Product\s*Name|Equipment\s*Name|Item\s*Name)[:：\s]*([^\n]{2,60})/i,
+    // 医学设备类型直接匹配
+    /(非接触式眼压计|接触式眼压计|眼压计|血压计|心电图机|监护仪|呼吸机|麻醉机|血液透析机|生化分析仪|血细胞分析仪|尿液分析仪|离心机|显微镜|PCR仪|基因测序仪|质谱仪|激光治疗仪|电刀|高频电刀|除颤仪|输液泵|注射泵|内窥镜|腹腔镜|超声诊断仪|彩超|黑白超|CT|核磁|MRI|DR|CR|DSA|X射线机|血液净化装置|血液灌流机|等离子灭菌器|高压灭菌器|数字减影|影像|生化分析|血球|血凝|血气|电解质|免疫|美容仪|理疗仪)/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      let name = match[1] || match[0];
+      // 清理前缀
+      name = name.replace(/^[:：\s]+/, '').replace(/^(设备名称|产品名称|名称|型号|型号：)[：:\s]*/, '').trim();
+      // 截取第一行（避免贪婪匹配）
+      name = name.split('\n')[0].trim();
+      if (name.length >= 2 && !isLikelyNotName(name)) {
+        return { value: name, source: '铭牌标注', confidence: 'high', status: 'verified' };
+      }
+    }
+  }
+
+  // 兜底：扫描行，找看起来像设备名的（包含医学词汇，但不是公司/证号/电源行）
+  for (const line of lines) {
+    const clean = line.trim();
+    if (clean.length >= 3 && clean.length <= 40 &&
+        !/^\d+$/.test(clean) &&
+        !isLikelyNotName(clean) &&
+        !/^(型号|Model|MODEL|SN|生产日期|制造日期|输入电源|安全类型|运行方式|产品标准|生产地址)/i.test(clean) &&
+        !/^[A-Z0-9\-\.]+$/.test(clean)) {  // 排除纯型号/纯英文行
+      return { value: clean, source: '铭牌首行推测', confidence: 'medium', status: 'warning' };
+    }
+  }
+
+  return { value: '', source: '', confidence: 'low', status: 'missing' };
+}
+
+// 二、设备型号识别
+function extractDeviceModel(text, lines) {
+  const patterns = [
+    /(?:型号|规格型号|产品型号|Model|Type|MODEL)[:：\s]*([^\n]{2,40})/i,
+    /(?:REF|REF\s*NO\.?)[:：\s]*([^\n]{2,40})/i,
+    /([A-Z][A-Za-z0-9]*(?:\s*[-–—]\s*[A-Za-z0-9]+){1,3})/,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      let model = match[1] || match[0];
+      model = model.replace(/^[:：\s]+/, '').trim();
+      if (model.length >= 2) {
+        return { value: model, source: '铭牌标注', confidence: 'high', status: 'verified' };
+      }
+    }
+  }
+  
+  return { value: '', source: '', confidence: 'low', status: 'missing' };
+}
+
+// 三、生产日期识别
+function extractProductionDate(text, lines) {
+  // 第一优先级：带明确标签的日期（生产日期/出厂日期/制造日期）
+  const labeledPatterns = [
+    { regex: /(?:生产日期|制造日期|出厂日期|Date\s*of\s*Manufacture|DOM|MFG\s*DATE|Manufacturing\s*Date)[:：\s]*(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/, fmt: 'ymd' },
+    { regex: /(?:生产日期|制造日期|出厂日期)[:：\s]*(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/, fmt: 'dmy' },
+    { regex: /(?:生产日期|制造日期|出厂日期)[:：\s]*(20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?/, fmt: 'ymd_cn' },
+    { regex: /(?:生产日期|制造日期|出厂日期)[:：\s]*(\d{4})\s*-\s*(\d{1,2})\s*-\s*(\d{1,2})/, fmt: 'ymd' },
+  ];
+
+  for (const { regex, fmt } of labeledPatterns) {
+    const match = text.match(regex);
+    if (match) {
+      const result = parseDate(match, fmt);
+      if (result) return result;
+    }
+  }
+
+  // 第二优先级：宽松匹配 — 任何"生产"或"出厂"行里找日期
+  // 解决OCR标签被误读（如"出厂日期"被读成"生产日湖"）但日期本身识别正确的情况
+  for (const line of lines) {
+    if (/(生产|出厂|制造|发产|出产)/.test(line)) {
+      // 该行内提取任意 YYYY-MM-DD / YYYY.MM.DD / YYYY/MM/DD 格式日期
+      const dateInLine = line.match(/(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})/);
+      if (dateInLine) {
+        // dateInLine 格式: [fullMatch, year, month, day] — 正好匹配 parseDate 的 ymd 分支
+        const result = parseDate(dateInLine, 'ymd');
+        if (result) {
+          return { value: result.value, source: '标签误读但日期可识别', confidence: 'medium', status: 'warning' };
+        }
+      }
+      // 中文日期格式
+      const cnDateInLine = line.match(/(20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?/);
+      if (cnDateInLine) {
+        const result = parseDate(cnDateInLine, 'ymd_cn');
+        if (result) {
+          return { value: result.value, source: '标签误读但日期可识别', confidence: 'medium', status: 'warning' };
+        }
+      }
+    }
+  }
+
+  // 第三优先级：无标签 — 全文找 4位年份开头的高置信度日期
+  const unlabeledPatterns = [
+    { regex: /\b(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})\b/, fmt: 'ymd' },
+    { regex: /\b(20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?\b/, fmt: 'ymd_cn' },
+    { regex: /\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[-\s]*(\d{4})\b/i, fmt: 'mon_year' },
+    { regex: /\b(\d{4})[-\s]*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b/i, fmt: 'year_mon' },
+  ];
+
+  for (const { regex, fmt } of unlabeledPatterns) {
+    const match = text.match(regex);
+    if (match) {
+      const result = parseDate(match, fmt);
+      if (result) {
+        return { value: result.value, source: '铭牌日期推测（无标签）', confidence: 'low', status: 'warning' };
+      }
+    }
+  }
+
+  return { value: '', source: '', confidence: 'low', status: 'missing' };
+}
+
+function parseDate(match, fmt) {
+  try {
+    let y, m, d;
+    const months = { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12 };
+    
+    switch (fmt) {
+      case 'ymd':
+        [, y, m, d] = match;
+        break;
+      case 'dmy':
+        [, d, m, y] = match;
+        break;
+      case 'ymd_cn':
+        [, y, m, d] = match;
+        d = d || '01';
+        break;
+      case 'mon_year':
+        [, m, y] = match;
+        m = months[m.toLowerCase()]; d = '01';
+        break;
+      case 'year_mon':
+        [, y, m] = match;
+        m = months[m.toLowerCase()]; d = '01';
+        break;
+    }
+    
+    y = parseInt(y); m = parseInt(m); d = parseInt(d) || 1;
+    if (y < 2000 || y > 2099 || m < 1 || m > 12 || d < 1 || d > 31) return null;
+    
+    const date = new Date(y, m - 1, d);
+    if (date.getFullYear() !== y || date.getMonth() !== m - 1) return null;
+    
+    const dateStr = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    return { value: dateStr, source: '铭牌标注', confidence: 'high', status: 'verified' };
+  } catch {
+    return null;
+  }
+}
+
+// 四、生产厂家识别
+function extractManufacturer(text, lines) {
+  // 防串扰：注册证号不能作为厂家
+  const isLikelyNotMfr = (s) => {
+    if (!s) return true;
+    if (/(?:国械注|国食药监械|注册证|证书编号|注册号)/.test(s)) return true;
+    if (/(?:输入电源|安全类型|运行方式|产品标准|生产(者)?地址)/.test(s)) return true;
+    if (/^\d+$/.test(s)) return true;
+    return false;
+  };
+
+  const patterns = [
+    // 中文关键词（按优先级）
+    /(?:生产企业|生产厂家|制造商|制造厂商|生产商|厂家|公司名称|制造方|出品方|制造单位)[:：\s]*([^\n]{2,80})/,
+    // 英文关键词
+    /(?:Manufacturer|Made\s*by|Manufactured\s*by|Producer|Company)[:：\s]*([^\n]{2,80})/i,
+    // 末尾无冒号的公司形式（NIDEK CO.,LTD. 这种）
+    /^([A-Z][A-Z0-9\.\s,&-]{3,40}(?:CO\.|LTD|LLC|INC|GMBH|CORP|CO\.,?\s*LTD\.?|Co\.?,?\s*Ltd\.?))/m,
+    // 日本公司特有的 K.K. / 株式会社
+    /([^\n]{2,40}(?:株式会社|有限会社|K\.K\.|Co\.,?\s*Ltd\.?))/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      let mfr = match[1] || match[0];
+      mfr = mfr.replace(/^[:：\s]+/, '').trim();
+      if (mfr.length >= 2 && !isLikelyNotMfr(mfr)) {
+        return { value: mfr, source: '铭牌标注', confidence: 'high', status: 'verified' };
+      }
+    }
+  }
+
+  // 兜底：扫描行，找看起来像公司的行
+  for (const line of lines) {
+    const clean = line.trim();
+    if (clean.length >= 4 && clean.length <= 80 &&
+        !isLikelyNotMfr(clean) &&
+        /(?:公司|集团|有限|股份|医疗|器械|科技|生物|电子|仪器|设备|医院|Corp|Inc|Ltd|LLC|GmbH|Co\.,?\s*Ltd|株式会社|K\.K\.|PHARMA|MEDICAL|TECHNOLOGY)/.test(clean) &&
+        !/^(?:型号|Model|输入电源|安全类型|运行方式|产品标准|生产地址|注册证|医疗器械)/.test(clean)) {
+      return { value: clean, source: '铭牌推测', confidence: 'medium', status: 'warning' };
+    }
+  }
+
+  return { value: '', source: '', confidence: 'low', status: 'missing' };
+}
+
+// 五、使用年限识别
+function extractServiceLife(text, lines) {
+  // 优先：铭牌直接标注的年限（"7年"、"10年"等）
+  const yearPatterns = [
+    /(?:使用年限|使用期限|使用寿命|设计寿命|Service\s*Life|Expected\s*Life|Lifespan)[:：\s]*(\d+)\s*(?:年|Y|yrs?|years?)(?!\s*[小时时])/i,
+    /(?:使用年限|使用期限|使用寿命|设计寿命)[:：\s]*(\d+)\s*年/i,
+    /(?:使用期限|有效期|保修期)[:：\s]*.*?(\d+)\s*年/,
+  ];
+
+  for (const pattern of yearPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const years = parseInt(match[1]);
+      if (years >= 1 && years <= 30) {
+        return { value: years + '年', source: '铭牌标注', confidence: 'high', status: 'verified' };
+      }
+    }
+  }
+
+  // 次优先：铭牌标注的运行小时数 → 自动换算为年限
+  // 医疗设备通常按每日8小时计算：小时数 / (8 × 365) ≈ 年限
+  const hourPatterns = [
+    /(?:使用年限|使用期限|使用寿命|设计寿命|使用期限)[:：\s]*(?:运行|工作|额定)?(\d{3,6})\s*(?:小时|H|hrs?|hours?)/i,
+    /(?:使用年限|使用期限|使用寿命)[:：\s]*(\d{4,6})\s*(?:小时|H|hrs?|hours?)/i,
+    // 中文全称
+    /(?:使用年限|使用期限)[:：\s]*.*?(\d{3,6})\s*(?:小时|H|hrs?|hours?)/i,
+  ];
+
+  const HOURS_PER_DAY = 8;
+  const DAYS_PER_YEAR = 365;
+  const HOURS_PER_YEAR = HOURS_PER_DAY * DAYS_PER_YEAR; // 2920
+
+  for (const pattern of hourPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const hours = parseInt(match[1]);
+      if (hours >= 100 && hours <= 100000) {
+        const years = Math.round(hours / HOURS_PER_YEAR);
+        return {
+          value: years + '年',
+          source: `铭牌标注（${hours}小时，按${HOURS_PER_DAY}h/天换算）`,
+          confidence: 'medium',
+          status: 'verified',
+          rawHours: hours
+        };
+      }
+    }
+  }
+
+  // 兜底：行业标准推断
+  if (/CT|MRI|DSA|DR|CR|X射线|X线|影像|血管造影/i.test(text)) {
+    return { value: '10年', source: '行业标准（大型影像设备8-10年）', confidence: 'medium', status: 'warning' };
+  }
+  if (/监护仪|呼吸机|麻醉机|除颤|起搏|输液泵|注射泵/i.test(text)) {
+    return { value: '7年', source: '行业标准（生命支持类设备5-7年）', confidence: 'medium', status: 'warning' };
+  }
+  if (/生化|血球|血凝|免疫|离心|显微镜|PCR|分析仪|检测/i.test(text)) {
+    return { value: '8年', source: '行业标准（检验设备）', confidence: 'medium', status: 'warning' };
+  }
+
+  return { value: '', source: '', confidence: 'low', status: 'missing' };
+}
+
+// 六、报废时间计算
+function calculateDisposalDate(productionDateStr, serviceLifeStr) {
+  if (!productionDateStr) {
+    return { value: '', source: '待生产日期确认后计算', confidence: 'low', status: 'missing' };
+  }
+  
+  const lifeMatch = serviceLifeStr ? serviceLifeStr.match(/(\d+)/) : null;
+  const years = lifeMatch ? parseInt(lifeMatch[1]) : 10;
+  
+  try {
+    const [y, m, d] = productionDateStr.split('-').map(Number);
+    const prodDate = new Date(y, m - 1, d);
+    const disposalDate = new Date(prodDate);
+    disposalDate.setFullYear(disposalDate.getFullYear() + years);
+    
+    // 处理闰年情况
+    if (m === 2 && d === 29) {
+      disposalDate.setDate(28); // 非闰年回退到2月28日
+    }
+    
+    const ds = `${disposalDate.getFullYear()}-${String(disposalDate.getMonth()+1).padStart(2,'0')}-${String(disposalDate.getDate()).padStart(2,'0')}`;
+    return { value: ds, source: `生产日期+${years}年`, confidence: 'high', status: 'verified' };
+  } catch {
+    return { value: '', source: '', confidence: 'low', status: 'missing' };
+  }
+}
+
+// 七、设备序列号识别
+function extractSerialNumber(text, lines) {
+  const patterns = [
+    // 主流标签
+    /(?:序列号|设备序列号|出厂编号|机身编号|产品编号|设备编号|货号)[:：\s#]*([A-Za-z0-9\-_.#]{4,40})/i,
+    // 英文
+    /(?:Serial\s*No\.?|S\/N|SN|SER\.?\s*NO\.?|Serial\s*Number|P\/N|REF|Item\s*No\.?|Article\s*No\.?)[:：\s#]*([A-Za-z0-9\-_.#]{4,40})/i,
+    // 主机/配件层级
+    /(?:主机编号|主机序列号|产品序列号)[:：\s]*([A-Za-z0-9\-_.#]{4,40})/,
+    // 裸 SN:
+    /\bSN[:：\s]*([A-Za-z0-9\-_.#]{4,40})\b/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      let sn = match[1].trim();
+      // 易混淆字符提示
+      const confusions = [];
+      if (/[2Z]/.test(sn)) confusions.push('注意区分Z/2');
+      if (/[8B]/.test(sn) && !/[A-H]/.test(sn.replace(/8/g,''))) confusions.push('注意区分B/8');
+      if (/[0O]/.test(sn)) confusions.push('注意区分O/0');
+      if (/[1I]/.test(sn) && sn.length <= 10) confusions.push('注意区分I/1');
+
+      const hint = confusions.length > 0 ? ' (' + confusions.join('；') + ')' : '';
+      return { value: sn, source: '铭牌标注' + hint, confidence: 'high', status: confusions.length > 0 ? 'warning' : 'verified' };
+    }
+  }
+
+  return { value: '', source: '', confidence: 'low', status: 'missing' };
+}
+
+// 八、医疗器械注册证号识别
+function extractRegistrationNumber(text, lines) {
+  const patterns = [
+    // 带关键词
+    /(?:注册证号|注册证编号|注册编号|医疗器械注册证(?:书)?编号|注册号|Registration\s*No\.?|Cert\.?\s*No\.?|REG\.?\s*NO\.?)[:：\s]*([^\n]{6,40})/i,
+    // 新格式：国械注准/注进/注许 + 4位年 + 1位类别 + 4位分类 + 4位流水
+    /(国械注[准进许]\s*\d{4}\s*\d\s*\d{4}\s*\d{4})/,
+    // 新格式简版
+    /(国械注[准进许]\d{13})/,
+    // 旧格式：国食药监械(进)字 + 4位年 + 第 + 流水 + 号
+    /(国食药监械[\(（](?:进)?[\)）]字\s*\d{4}\s*第?\s*\d+\s*号?)/,
+    // 旧格式更宽松
+    /(国食药监械[^\n]{0,30}?号)/,
+    // 地方械注
+    /([京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青川藏宁琼]械注[准进许]\d+[^\n]{0,15})/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      let regNo = (match[1] || match[0]).trim();
+      // 截取到行尾或"号"为止
+      regNo = regNo.replace(/[\s\n]+.*$/, '');
+      // 补全末尾的"号"（旧格式经常被 OCR 漏掉）
+      if (/国食药监械/.test(regNo) && !/号$/.test(regNo)) {
+        regNo = regNo + '号';
+      }
+      const validation = validateRegNo(regNo);
+      if (validation.valid || /国食药监械|国械注|省?械注/.test(regNo)) {
+        return { value: regNo, source: '铭牌标注', confidence: 'high', status: validation.valid ? 'verified' : 'warning', validation };
+      }
+    }
+  }
+
+  return { value: '', source: '', confidence: 'low', status: 'missing' };
+}
+
+function validateRegNo(regNo) {
+  const cleaned = regNo.replace(/\s+/g, '');
+
+  // 新格式：国械注准/进/许 + 4位年号 + 1位类别 + 4位分类 + 4位流水 = 共14位
+  const gxzz = cleaned.match(/^国械注([准进许])(\d{4})(\d)(\d{4})(\d{4})$/);
+  if (gxzz) {
+    const year = parseInt(gxzz[2]);
+    if (year >= 2000 && year <= 2099) return { valid: true, format: '国械注' + gxzz[1] };
+    return { valid: false, issue: '年号异常：' + year };
+  }
+
+  // 旧格式：国食药监械(进)字 + 4位年 + 第 + 流水 + 号
+  const old = cleaned.match(/^国食药监械[\(（](进)?[\)）]字(\d{4})第?\d+号$/);
+  if (old) {
+    const year = parseInt(old[2]);
+    if (year >= 1990 && year <= 2099) return { valid: true, format: '国食药监械(进)字' };
+    return { valid: false, issue: '年号异常：' + year };
+  }
+
+  // 省级格式：X械注准/进 + ...
+  const prov = cleaned.match(/^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青川藏宁琼]械注([准进许])\d+/);
+  if (prov) {
+    return { valid: true, format: '省级械注' + prov[1] };
+  }
+
+  // 包含关键字符但格式不完全匹配
+  if (/国?械注[准进许]/.test(cleaned) || /国食药监械/.test(cleaned)) {
+    return { valid: false, issue: '格式不完全匹配，请人工核实' };
+  }
+
+  return { valid: true, format: '未知格式' };
+}
+
+// ============================================================
+// 结果展示 Modal
+// ============================================================
+
+function showResultModal(data) {
+  const fields = [
+    { key: 'deviceName', label: '设备名称', icon: '🏷️', hint: '按《医疗器械分类目录》标准术语' },
+    { key: 'deviceModel', label: '设备型号', icon: '📐', hint: '含空格/连字符，区分大小写' },
+    { key: 'manufacturer', label: '生产厂家', icon: '🏭', hint: '中英文对照需完整保留' },
+    { key: 'registrationNo', label: '医疗器械注册证号', icon: '📝', hint: '支持新格式(国械注)与旧格式(国食药监械)' },
+    { key: 'serialNumber', label: '设备序列号', icon: '🔢', hint: '注意区分Z/2、B/8、O/0、I/1' },
+    { key: 'productionDate', label: '生产日期', icon: '📅', hint: '标准格式：YYYY-MM-DD' },
+    { key: 'serviceLife', label: '使用年限', icon: '⏱️', hint: '铭牌标注 > 注册证 > 行业标准 > 制造商建议' },
+    { key: 'disposalDate', label: '报废时间（自动计算）', icon: '⚠️', hint: '报废日期 = 生产日期 + 使用年限' },
+  ];
+
+  let html = '';
+  for (const f of fields) {
+    const d = data[f.key];
+    const value = d.value || '';
+    const statusClass = d.status === 'verified' ? 'field-verified' : d.status === 'warning' ? 'field-warning' : 'field-error';
+
+    html += `
+      <div class="field-item ${statusClass}">
+        <div class="field-label">
+          <span class="status-icon">${f.icon}</span> ${f.label}
+          ${!value ? '<span style="color:var(--danger);font-size:10px;">未识别到</span>' : ''}
+        </div>
+        <input type="text" class="field-input" id="field_${f.key}"
+               value="${escapeHtml(value)}" placeholder="手动输入或修正...">
+        ${d.source ? `<div class="field-hint">📌 来源：${d.source}</div>` : ''}
+        <div class="field-hint">💡 ${f.hint}</div>
+      </div>`;
+  }
+
+  // 原始OCR文本（可折叠查看，便于手动复制修正）
+  const ocrText = AppState.currentOcrText || '';
+  html += `
+    <details class="ocr-raw" style="margin-top:14px;background:#f1f5f9;border-radius:8px;padding:10px;">
+      <summary style="cursor:pointer;font-size:13px;color:var(--text-secondary);font-weight:600;user-select:none;">
+        📄 查看原始OCR识别文本（点击展开） — 字段不准时可从这复制
+      </summary>
+      <textarea readonly style="width:100%;height:160px;margin-top:8px;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:monospace;background:#fff;line-height:1.5;resize:vertical;">${escapeHtml(ocrText)}</textarea>
+      <button type="button" class="btn btn-outline btn-xs" onclick="copyOcrText()" style="margin-top:6px;">📋 复制全文</button>
+    </details>`;
+
+  document.getElementById('resultFields').innerHTML = html;
+  document.getElementById('resultModal').style.display = 'flex';
+}
+
+function copyOcrText() {
+  const text = AppState.currentOcrText || '';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板', 'success'));
+  } else {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); showToast('已复制', 'success'); } catch { showToast('复制失败', 'error'); }
+    document.body.removeChild(ta);
+  }
+}
+
+function closeResultModal(saved) {
+  document.getElementById('resultModal').style.display = 'none';
+  if (!saved) {
+    AppState.currentExtractedData = null;
+  }
+}
+
+// ============ 保存设备 ============
+function saveDevice() {
+  const fields = ['deviceName','deviceModel','manufacturer','registrationNo','serialNumber','productionDate','serviceLife','disposalDate'];
+  const device = { id: Date.now(), createdAt: new Date().toISOString() };
+  
+  for (const key of fields) {
+    const input = document.getElementById('field_' + key);
+    const original = AppState.currentExtractedData[key] || {};
+    device[key] = (input ? input.value.trim() : original.value || '');
+    device[key + '_source'] = original.source || '';
+    device[key + '_status'] = original.status || '';
+  }
+  
+  AppState.devices.unshift(device);
+  saveDevices();
+  closeResultModal(true);
+  
+  // 重置拍照区域
+  document.getElementById('cameraPlaceholder').innerHTML = `
+    <span class="camera-icon">📷</span>
+    <span class="camera-text">点击拍摄铭牌</span>
+    <span class="camera-subtext">支持拍照或从相册选择</span>`;
+  document.getElementById('cameraPlaceholder').classList.remove('has-image');
+  document.getElementById('btnRecognize').disabled = true;
+  AppState.currentImageDataUrl = null;
+  
+  updateStats();
+  renderDeviceList();
+  showToast('设备信息已保存 ✅', 'success');
+}
+
+// ============ 设备列表渲染 ============
+function renderDeviceList() {
+  const container = document.getElementById('deviceListContainer');
+  const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase();
+  
+  let filtered = AppState.devices;
+  if (searchTerm) {
+    filtered = AppState.devices.filter(d => 
+      (d.deviceName || '').toLowerCase().includes(searchTerm) ||
+      (d.deviceModel || '').toLowerCase().includes(searchTerm) ||
+      (d.manufacturer || '').toLowerCase().includes(searchTerm) ||
+      (d.serialNumber || '').toLowerCase().includes(searchTerm)
+    );
+  }
+  
+  const badge = document.getElementById('listBadge');
+  if (AppState.devices.length > 0) {
+    badge.style.display = 'flex';
+    badge.textContent = AppState.devices.length;
+  } else {
+    badge.style.display = 'none';
+  }
+  
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${searchTerm ? '🔍' : '📋'}</div>
+        <p>${searchTerm ? '未找到匹配的设备' : '暂无设备记录'}</p>
+        <p style="font-size:12px;color:var(--text-muted);">${searchTerm ? '尝试其他关键词' : '拍照识别设备铭牌后自动添加'}</p>
+      </div>`;
+    return;
+  }
+  
+  let html = '';
+  for (let i = 0; i < filtered.length; i++) {
+    const d = filtered[i];
+    const name = d.deviceName || '未命名设备';
+    const model = d.deviceModel || '';
+    const mfr = d.manufacturer || '';
+    const sn = d.serialNumber || '';
+    
+    // 报废状态
+    let statusClass = 'status-normal';
+    let statusText = '正常';
+    if (d.disposalDate) {
+      const disposal = new Date(d.disposalDate);
+      const now = new Date();
+      const oneYear = 365 * 24 * 60 * 60 * 1000;
+      if (disposal < now) {
+        statusClass = 'status-expired';
+        statusText = '已报废';
+      } else if (disposal - now < oneYear) {
+        statusClass = 'status-warning';
+        statusText = '即将报废';
+      }
+    }
+    
+    html += `
+      <div class="device-card" onclick="showDeviceDetail(${d.id})">
+        <div class="device-card-header">
+          <div>
+            <div class="device-name-text">${escapeHtml(name)}</div>
+            ${model ? `<div class="device-model" style="margin-top:2px;">型号：${escapeHtml(model)}</div>` : ''}
+          </div>
+          <span class="device-card-status ${statusClass}">${statusText}</span>
+        </div>
+        <div class="device-card-meta">
+          ${mfr ? `<span>🏭 ${escapeHtml(mfr)}</span>` : '<span></span>'}
+          ${sn ? `<span>🔢 ${escapeHtml(sn)}</span>` : '<span></span>'}
+          ${d.productionDate ? `<span>📅 生产：${escapeHtml(d.productionDate)}</span>` : '<span></span>'}
+          ${d.disposalDate ? `<span>⚠️ 报废：${escapeHtml(d.disposalDate)}</span>` : '<span></span>'}
+        </div>
+      </div>`;
+  }
+  
+  container.innerHTML = html;
+}
+
+// ============ 设备详情 ============
+function showDeviceDetail(id) {
+  const device = AppState.devices.find(d => d.id === id);
+  if (!device) return;
+  AppState.detailDeviceIndex = AppState.devices.findIndex(d => d.id === id);
+  
+  const fields = [
+    { key: 'deviceName', label: '设备名称', icon: '🏷️' },
+    { key: 'deviceModel', label: '设备型号', icon: '📐' },
+    { key: 'manufacturer', label: '生产厂家', icon: '🏭' },
+    { key: 'registrationNo', label: '医疗器械注册证号', icon: '📝' },
+    { key: 'serialNumber', label: '设备序列号', icon: '🔢' },
+    { key: 'productionDate', label: '生产日期', icon: '📅' },
+    { key: 'serviceLife', label: '使用年限', icon: '⏱️' },
+    { key: 'disposalDate', label: '报废时间', icon: '⚠️' },
+  ];
+  
+  let html = `<div class="modal-handle"></div>
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;">设备详情</h2>
+    <div class="field-grid">`;
+  
+  for (const f of fields) {
+    const value = device[f.key] || '';
+    const missing = !value;
+    html += `
+      <div class="field-item ${missing ? 'field-error' : 'field-verified'}">
+        <div class="field-label">${f.icon} ${f.label}</div>
+        <div class="field-value">${missing ? '<span class="field-missing">【未识别到】— 建议补充拍摄铭牌信息区</span>' : escapeHtml(value)}</div>
+        ${device[f.key + '_source'] ? `<div class="field-hint">📌 ${escapeHtml(device[f.key + '_source'])}</div>` : ''}
+      </div>`;
+  }
+  
+  html += `</div>
+    <div class="field-hint" style="margin-top:12px;">🕐 记录时间：${new Date(device.createdAt).toLocaleString('zh-CN')}</div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="editDevice(${device.id})">✏️ 编辑</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDeleteDevice(${device.id})">🗑 删除</button>
+    </div>`;
+  
+  document.getElementById('detailSheet').innerHTML = html;
+  document.getElementById('detailModal').style.display = 'flex';
+}
+
+function editDevice(id) {
+  document.getElementById('detailModal').style.display = 'none';
+  const device = AppState.devices.find(d => d.id === id);
+  if (!device) return;
+  
+  const data = {};
+  const fieldKeys = ['deviceName','deviceModel','manufacturer','registrationNo','serialNumber','productionDate','serviceLife','disposalDate'];
+  for (const key of fieldKeys) {
+    data[key] = {
+      value: device[key] || '',
+      source: device[key + '_source'] || '',
+      status: device[key + '_status'] || 'verified',
+      confidence: 'high'
+    };
+  }
+  
+  AppState.currentExtractedData = data;
+  // 标记为编辑模式
+  AppState._editingId = id;
+  showResultModal(data);
+}
+
+function confirmDeleteDevice(id) {
+  showConfirm('确认删除', '删除后数据无法恢复，确定要删除该设备吗？', () => {
+    AppState.devices = AppState.devices.filter(d => d.id !== id);
+    saveDevices();
+    document.getElementById('detailModal').style.display = 'none';
+    updateStats();
+    renderDeviceList();
+    showToast('设备已删除', 'success');
+  });
+}
+
+// ============ Excel 导出 ============
+function exportToExcel() {
+  if (AppState.devices.length === 0) {
+    showToast('没有可导出的数据', 'warning');
+    return;
+  }
+  
+  const headers = ['设备名称', '设备型号', '生产厂家', '医疗器械注册证号', '设备序列号', '生产日期', '使用年限', '报废时间', '记录时间'];
+  const rows = [headers];
+  
+  for (const d of AppState.devices) {
+    rows.push([
+      d.deviceName || '',
+      d.deviceModel || '',
+      d.manufacturer || '',
+      d.registrationNo || '',
+      d.serialNumber || '',
+      d.productionDate || '',
+      d.serviceLife || '',
+      d.disposalDate || '',
+      new Date(d.createdAt).toLocaleString('zh-CN')
+    ]);
+  }
+  
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  
+  // 设置列宽
+  ws['!cols'] = [
+    { wch: 30 }, { wch: 20 }, { wch: 40 }, { wch: 25 },
+    { wch: 25 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 20 }
+  ];
+  
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '医疗设备盘点清单');
+  
+  const now = new Date();
+  const filename = `医疗设备盘点_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.xlsx`;
+  
+  XLSX.writeFile(wb, filename);
+  showToast('Excel导出成功 📥', 'success');
+}
+
+// ============ Excel 导入 ============
+function importFromExcel(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+      
+      if (rows.length < 2) {
+        showToast('Excel文件为空或格式不正确', 'error');
+        return;
+      }
+      
+      const headerRow = rows[0];
+      const colMap = {};
+      const fieldMap = {
+        '设备名称': 'deviceName', '设备型号': 'deviceModel', '生产厂家': 'manufacturer',
+        '医疗器械注册证号': 'registrationNo', '设备序列号': 'serialNumber',
+        '生产日期': 'productionDate', '使用年限': 'serviceLife', '报废时间': 'disposalDate'
+      };
+      
+      for (let i = 0; i < headerRow.length; i++) {
+        const h = String(headerRow[i] || '').trim();
+        if (fieldMap[h]) colMap[i] = fieldMap[h];
+      }
+      
+      let importedCount = 0;
+      for (let r = 1; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row || row.every(c => !c)) continue;
+        
+        const device = { id: Date.now() + r, createdAt: new Date().toISOString() };
+        for (const [colIdx, field] of Object.entries(colMap)) {
+          device[field] = String(row[colIdx] || '').trim();
+        }
+        AppState.devices.unshift(device);
+        importedCount++;
+      }
+      
+      saveDevices();
+      updateStats();
+      renderDeviceList();
+      showToast(`成功导入 ${importedCount} 条设备记录 ✅`, 'success');
+    } catch (err) {
+      showToast('导入失败：' + err.message, 'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  event.target.value = '';
+}
+
+// ============ 本地存储 ============
+function saveDevices() {
+  try {
+    localStorage.setItem('med_device_inventory', JSON.stringify(AppState.devices));
+  } catch (e) {
+    showToast('存储空间不足，请导出数据后清理', 'warning');
+  }
+}
+
+function loadDevices() {
+  try {
+    const data = localStorage.getItem('med_device_inventory');
+    if (data) AppState.devices = JSON.parse(data);
+  } catch (e) {
+    AppState.devices = [];
+  }
+}
+
+// ============ 统计数据 ============
+function updateStats() {
+  document.getElementById('statTotal').textContent = AppState.devices.length;
+  document.getElementById('btnExport').disabled = AppState.devices.length === 0;
+  
+  let nearExpire = 0;
+  const now = new Date();
+  const oneYear = 365 * 24 * 60 * 60 * 1000;
+  for (const d of AppState.devices) {
+    if (d.disposalDate) {
+      const disposal = new Date(d.disposalDate);
+      if (disposal > now && disposal - now < oneYear) nearExpire++;
+    }
+  }
+  document.getElementById('statNearExpire').textContent = nearExpire;
+}
+
+// ============ 演示数据 ============
+function loadDemoData() {
+  const demo = [
+    {
+      id: Date.now() + 1, createdAt: new Date().toISOString(),
+      deviceName: '全自动生化分析仪 AU5800',
+      deviceModel: 'Beckman Coulter AU5800',
+      manufacturer: 'Beckman Coulter, Inc.（贝克曼库尔特有限公司）',
+      registrationNo: '国械注进20172400001',
+      serialNumber: 'AU5800-2023A0875',
+      productionDate: '2023-06-30',
+      serviceLife: '7年（依据《医疗器械使用期限指导原则》第5.2条）',
+      disposalDate: '2030-06-30',
+      deviceName_source: '铭牌标注', deviceModel_source: '铭牌标注',
+      manufacturer_source: '铭牌标注', registrationNo_source: '铭牌标注',
+      serialNumber_source: '铭牌标注', productionDate_source: '铭牌标注',
+      serviceLife_source: '行业标准', disposalDate_source: '计算值'
+    },
+    {
+      id: Date.now() + 2, createdAt: new Date().toISOString(),
+      deviceName: '西门子SOMATOM Force 双源CT',
+      deviceModel: 'SOMATOM Force',
+      manufacturer: 'Siemens Healthcare GmbH（西门子医疗有限公司）',
+      registrationNo: '国械注进20183300002',
+      serialNumber: 'PHX-CT2023#7A8B9C',
+      productionDate: '2023-03-15',
+      serviceLife: '10年（依据大型影像设备行业标准）',
+      disposalDate: '2033-03-15',
+      deviceName_source: '铭牌标注', deviceModel_source: '铭牌标注',
+      manufacturer_source: '铭牌标注', registrationNo_source: '铭牌标注',
+      serialNumber_source: '铭牌标注（注意区分Z/2、B/8）', productionDate_source: '铭牌标注',
+      serviceLife_source: '行业标准（大型影像设备8-10年）', disposalDate_source: '计算值'
+    },
+    {
+      id: Date.now() + 3, createdAt: new Date().toISOString(),
+      deviceName: '迈瑞Resona I9 彩色多普勒超声诊断仪',
+      deviceModel: 'Mindray Resona I9',
+      manufacturer: '深圳迈瑞生物医疗电子股份有限公司/Shenzhen Mindray Bio-Medical Electronics Co., Ltd.',
+      registrationNo: '粤械注准20202060003',
+      serialNumber: 'SN-RI9-202407#3C5D8F',
+      productionDate: '2024-07-01',
+      serviceLife: '8年（制造商建议）',
+      disposalDate: '2032-07-01',
+      deviceName_source: '铭牌标注', deviceModel_source: '铭牌标注',
+      manufacturer_source: '铭牌标注', registrationNo_source: '铭牌标注',
+      serialNumber_source: '铭牌标注', productionDate_source: '铭牌标注（原始：Jul/2024）',
+      serviceLife_source: '制造商建议', disposalDate_source: '计算值'
+    }
+  ];
+  
+  AppState.devices = [...demo, ...AppState.devices];
+  saveDevices();
+  updateStats();
+  renderDeviceList();
+  showToast('已加载 3 条演示数据 📋', 'success');
+  switchTab('list');
+}
+
+// ============ 确认对话框 ============
+function showConfirm(title, msg, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmDialog').style.display = 'flex';
+  AppState.confirmCallback = callback;
+}
+
+function closeConfirm() {
+  document.getElementById('confirmDialog').style.display = 'none';
+  AppState.confirmCallback = null;
+}
+
+function executeConfirm() {
+  if (AppState.confirmCallback) AppState.confirmCallback();
+  closeConfirm();
+}
+
+function confirmClearAll() {
+  showConfirm('清空所有数据', '此操作将删除全部设备记录且不可恢复。建议先导出Excel备份。确定继续吗？', () => {
+    AppState.devices = [];
+    saveDevices();
+    updateStats();
+    renderDeviceList();
+    showToast('所有数据已清空', 'success');
+  });
+}
+
+// ============ Toast ============
+function showToast(msg, type) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => toast.remove(), 2500);
+}
+
+// ============ 帮助 ============
+function showHelp() {
+  document.getElementById('helpDialog').style.display = 'flex';
+}
+
+// ============ 工具函数 ============
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ============ 点击 Modal 背景关闭 ============
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'resultModal') closeResultModal(false);
+  if (e.target.id === 'detailModal') document.getElementById('detailModal').style.display = 'none';
+  if (e.target.id === 'helpDialog') document.getElementById('helpDialog').style.display = 'none';
+});
+
+// ============ 修改保存逻辑（支持编辑模式） ============
+const originalSaveDevice = saveDevice;
+saveDevice = function() {
+  // 检查是否是编辑模式
+  if (AppState._editingId) {
+    const device = AppState.devices.find(d => d.id === AppState._editingId);
+    if (device) {
+      const fields = ['deviceName','deviceModel','manufacturer','registrationNo','serialNumber','productionDate','serviceLife','disposalDate'];
+      for (const key of fields) {
+        const input = document.getElementById('field_' + key);
+        if (input) device[key] = input.value.trim();
+      }
+      saveDevices();
+      closeResultModal(true);
+      AppState._editingId = null;
+      updateStats();
+      renderDeviceList();
+      showToast('设备信息已更新 ✅', 'success');
+      return;
+    }
+  }
+  originalSaveDevice();
+};
+
+// 导出按钮初始状态
+document.getElementById('btnExport').disabled = true;
+</script>
+</body>
+</html>

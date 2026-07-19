@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: medical-device-ocr
+    env: node
+    region: singapore
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: TENCENT_SECRET_ID
+        sync: false
+      - key: TENCENT_SECRET_KEY
+        sync: false
+      - key: OCR_REGION
+        value: ap-guangzhou
+      - key: PORT
+        value: "10000"
+      - key: NODE_VERSION
+        value: "22.22.2"

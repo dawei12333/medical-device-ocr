@@ -1,0 +1,9 @@
+.env
+node_modules/
+.claude/
+.clinerules/
+.workbuddy/
+/workbuddy/
+*.pyc
+__pycache__/
+.DS_Store
