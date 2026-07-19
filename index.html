@@ -672,7 +672,7 @@ function handleImageSelect(event) {
 // ============ OCR 引擎（腾讯云） ============
 
 // CloudBase 云函数地址 — 部署后把 YOUR_ENV_ID 替换为实际环境ID
-const CLOUDBASE_ENV_ID = 'YOUR_ENV_ID';
+const CLOUDBASE_ENV_ID = 'medical-ocr-d6gkxjm7m08ab69f1';
 const OCR_API_URL = (CLOUDBASE_ENV_ID !== 'YOUR_ENV_ID')
   ? `https://${CLOUDBASE_ENV_ID}.service.tcloudbase.com/ocr`
   : '/api/ocr';
