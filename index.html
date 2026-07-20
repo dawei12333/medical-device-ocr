@@ -694,7 +694,7 @@ async function startOCR() {
     document.getElementById('ocrProgressText').textContent = '正在识别中...';
     document.getElementById('ocrProgressFill').style.width = '30%';
 
-    const resp = await fetch(OCR_API_URL, {
+    const resp = await fetch(OCR_API_URL + '/api/ocr', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
