@@ -595,7 +595,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============ 服务器健康检查 ============
 async function checkServerHealth() {
   try {
-    const resp = await fetch('/api/health');
+    const resp = await fetch(OCR_API_URL + '/api/health', {
+      headers: { 'ngrok-skip-browser-warning': 'true' },
+    });
     const data = await resp.json();
     AppState.serverReady = data.ocrReady;
     if (!data.ocrReady) {
@@ -694,7 +696,10 @@ async function startOCR() {
 
     const resp = await fetch(OCR_API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
       body: JSON.stringify({ image: AppState.currentImageDataUrl }),
     });
 
