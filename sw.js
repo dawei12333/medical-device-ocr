@@ -1,4 +1,4 @@
-const CACHE_NAME = 'med-device-inventory-v4';
+const CACHE_NAME = 'med-device-inventory-v5-force-update';
 const urlsToCache = [
   './',
   './index.html',
