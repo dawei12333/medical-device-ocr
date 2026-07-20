@@ -671,8 +671,8 @@ function handleImageSelect(event) {
 
 // ============ OCR 引擎（腾讯云 SCF） ============
 
-// SCF 函数 URL — 已部署到腾讯云 SCF
-const OCR_API_URL = 'http://1455622494-6e59ol1liy.ap-shanghai.tencentscf.com';
+// OCR 后端地址 — ngrok 隧道到本地 server.js
+const OCR_API_URL = 'https://imprint-habitual-unweave.ngrok-free.dev';
 
 async function startOCR() {
   if (!AppState.currentImageDataUrl) {
