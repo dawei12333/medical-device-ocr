@@ -1,4 +1,4 @@
-const CACHE_NAME = 'med-device-inventory-v3';
+const CACHE_NAME = 'med-device-inventory-v4';
 const urlsToCache = [
   './',
   './index.html',
