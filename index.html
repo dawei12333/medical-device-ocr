@@ -646,29 +646,64 @@ async function forceReload() {
   location.replace(newUrl);
 }
 
+// ============ 图片压缩（大幅减少上传体积，提升OCR速度） ============
+function compressImage(file, maxWidth, quality) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        let w = img.width, h = img.height;
+        // 超大图等比缩放到 maxWidth
+        if (w > maxWidth) {
+          h = Math.round(h * maxWidth / w);
+          w = maxWidth;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        // JPEG 压缩到 quality，文件体积骤降 10-50 倍
+        resolve({ compressed: canvas.toDataURL('image/jpeg', quality), origSize: file.size, compWidth: w });
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // ============ 相机 / 图片选择 ============
 function triggerCamera() {
   document.getElementById('cameraInput').click();
 }
 
-function handleImageSelect(event) {
+async function handleImageSelect(event) {
   const file = event.target.files[0];
   if (!file) return;
-  
+
   if (!file.type.startsWith('image/')) {
     showToast('请选择图片文件', 'error');
     return;
   }
-  
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    AppState.currentImageDataUrl = e.target.result;
+
+  // 显示原图预览
+  const origReader = new FileReader();
+  origReader.onload = function(e) {
     const placeholder = document.getElementById('cameraPlaceholder');
     placeholder.innerHTML = `<img src="${e.target.result}" alt="设备铭牌">`;
     placeholder.classList.add('has-image');
-    document.getElementById('btnRecognize').disabled = false;
   };
-  reader.readAsDataURL(file);
+  origReader.readAsDataURL(file);
+
+  // 后台压缩（1500px宽，JPEG quality 0.6）— 基数5-15MB → 100-300KB
+  const { compressed, origSize, compWidth } = await compressImage(file, 1500, 0.6);
+  AppState.currentImageDataUrl = compressed;
+  document.getElementById('btnRecognize').disabled = false;
+
+  console.log('图片压缩完成:',
+    (origSize / 1024 / 1024).toFixed(1) + 'MB →',
+    (compressed.length * 0.75 / 1024 / 1024).toFixed(2) + 'MB base64,',
+    compWidth + 'px宽');
 }
 
 // ============ OCR 引擎（腾讯云 SCF） ============
