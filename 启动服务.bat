@@ -6,22 +6,25 @@ echo ========================================
 echo    医疗设备铭牌识别 — 一键启动
 echo ========================================
 echo.
-echo 正在启动OCR服务...
 
-REM 后台启动 server.js
-start "OCR-Server" /MIN "C:\Users\txx\.workbuddy\binaries\node\versions\22.22.2\node.exe" server.js
+REM 用 PowerShell 启动 server.js（更稳定）
+powershell -Command "Start-Process -FilePath 'C:\Users\txx\.workbuddy\binaries\node\versions\22.22.2\node.exe' -ArgumentList 'server.js' -WorkingDirectory 'C:\Users\txx\WorkBuddy\医疗设备铭牌识别2026' -WindowStyle Hidden"
 
-REM 等 server 初始化
-timeout /t 3 /nobreak >nul
+echo 等待服务启动...
+timeout /t 5 /nobreak >nul
 
-REM 打开 PWA（file:// 协议，自动连接 localhost:3000）
+REM 验证服务是否启动
+powershell -Command "try { Invoke-WebRequest -Uri 'http://localhost:3000/api/health' -UseBasicParsing -TimeoutSec 2 | Out-Null; Write-Host '✅ 服务在线' } catch { Write-Host '❌ 服务启动失败' -ForegroundColor Red }"
+
+echo.
+echo 打开 PWA...
 start "" "C:\Users\txx\WorkBuddy\医疗设备铭牌识别2026\index.html"
 
 echo.
 echo ========================================
-echo   ✅ OCR 服务已启动
-echo   📱 本机测试：PWA 已自动打开
-echo   📱 手机访问：需先启动 ngrok
-echo   🛑 停止服务：关闭 OCR-Server 窗口
+echo   ✅ 操作完成
+echo   PWA 已自动打开
+echo   OCR服务在后台运行
 echo ========================================
 echo.
+pause
