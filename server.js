@@ -35,7 +35,9 @@ if (process.env.TENCENT_SECRET_ID && process.env.TENCENT_SECRET_KEY) {
       profile: {
         httpProfile: {
           endpoint: 'ocr.tencentcloudapi.com',
-          reqTimeout: 30,
+          reqTimeout: 15,
+          // 启用连接池复用，避免每次请求都重建 TCP + TLS
+          keepAlive: true,
         },
       },
     };
@@ -104,7 +106,8 @@ app.post('/api/ocr', async (req, res) => {
     });
   }
 
-  // 5. 调用腾讯云OCR
+  // 5. 调用腾讯云OCR（加上计时）
+  const t0 = Date.now();
   try {
     const params = {
       ImageBase64: base64Content,
@@ -113,6 +116,7 @@ app.post('/api/ocr', async (req, res) => {
     };
 
     const result = await OcrClient.GeneralBasicOCR(params);
+    const ocrTime = Date.now() - t0;
 
     // 6. 组装返回
     const detections = (result.TextDetections || []).map(d => ({
@@ -120,17 +124,16 @@ app.post('/api/ocr', async (req, res) => {
       confidence: Math.round((d.Confidence || 0) * 100) / 100,
     }));
 
-    // 拼接完整文本（用换行分隔每个检测块）
     const fullText = detections.map(d => d.text).join('\n');
+
+    console.log(`⏱️ OCR服务器: ${ocrTime}ms · ${fullText.length}字符 · ${detections.length}检测项`);
 
     res.json({
       success: true,
       text: fullText,
       detections: detections,
       totalDetections: detections.length,
-      avgConfidence: detections.length > 0
-        ? Math.round(detections.reduce((s, d) => s + d.confidence, 0) / detections.length * 100) / 100
-        : 0,
+      ocrTimeMs: ocrTime,
     });
   } catch (err) {
     console.error('OCR API Error:', err.message);
