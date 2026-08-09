@@ -55,8 +55,10 @@ if (process.env.TENCENT_SECRET_ID && process.env.TENCENT_SECRET_KEY) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 解析JSON body（限制 10MB，容纳高分辨率图片base64）
+// 解析JSON body（限制 10MB）
 app.use(express.json({ limit: '10mb' }));
+// 解析二进制 body（API/ocr 使用，限制 10MB，直接传原始二进制图片）
+app.use('/api/ocr', express.raw({ type: 'image/*', limit: '10mb' }));
 
 // ========== 健康检查 ==========
 app.get('/api/health', (req, res) => {
@@ -67,7 +69,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ========== OCR识别接口 ==========
+// ========== OCR识别接口（支持 JSON base64 + 二进制图片） ==========
 app.post('/api/ocr', async (req, res) => {
   // 1. 密钥未配置
   if (!clientReady) {
@@ -78,17 +80,19 @@ app.post('/api/ocr', async (req, res) => {
     });
   }
 
-  // 2. 参数校验
-  const { image } = req.body;
-  if (!image || typeof image !== 'string') {
-    return res.status(400).json({ success: false, error: '缺少 image 参数' });
-  }
-
-  // 3. 去除 base64 前缀 (data:image/xxx;base64,)
-  let base64Content = image;
-  const base64Match = image.match(/^data:image\/\w+;base64,(.+)/);
-  if (base64Match) {
-    base64Content = base64Match[1];
+  // 2. 提取图片数据：支持 binary 和 JSON base64 两种格式
+  let base64Content;
+  if (Buffer.isBuffer(req.body)) {
+    // 二进制上传 — 直接转 base64（最快路径）
+    base64Content = req.body.toString('base64');
+  } else {
+    // JSON base64 上传（兼容旧版）
+    const { image } = req.body || {};
+    if (!image || typeof image !== 'string') {
+      return res.status(400).json({ success: false, error: '缺少 image 参数' });
+    }
+    const base64Match = image.match(/^data:image\/\w+;base64,(.+)/);
+    base64Content = base64Match ? base64Match[1] : image;
   }
 
   // 4. 大小检查（腾讯云限制 ImageBase64 ≤ 7MB）

@@ -647,28 +647,34 @@ async function forceReload() {
 }
 
 // ============ 图片压缩（大幅减少上传体积，提升OCR速度） ============
-function compressImage(file, maxWidth, quality) {
+function compressImageToBlob(file, maxWidth, quality) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = function(e) {
       const img = new Image();
       img.onload = function() {
         let w = img.width, h = img.height;
-        // 超大图等比缩放到 maxWidth
-        if (w > maxWidth) {
-          h = Math.round(h * maxWidth / w);
-          w = maxWidth;
-        }
+        if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-        // JPEG 压缩到 quality，文件体积骤降 10-50 倍
-        resolve({ compressed: canvas.toDataURL('image/jpeg', quality), origSize: file.size, compWidth: w });
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        // 直接输出 Blob（二进制），省去 base64 编码开销
+        canvas.toBlob(function(blob) {
+          resolve({ blob, origSize: file.size, compWidth: w });
+        }, 'image/jpeg', quality);
       };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+  });
+}
+
+// 辅助：Blob → base64 data URL（仅用于预览 + 兼容旧版）
+function blobToDataURL(blob) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
   });
 }
 
@@ -695,15 +701,20 @@ async function handleImageSelect(event) {
   };
   origReader.readAsDataURL(file);
 
-  // 后台压缩（1500px宽，JPEG quality 0.6）— 基数5-15MB → 100-300KB
-  const { compressed, origSize, compWidth } = await compressImage(file, 1500, 0.6);
-  AppState.currentImageDataUrl = compressed;
+  // 后台压缩（1200px宽，JPEG quality 0.5 — 文件骤降 20-50 倍）
+  const { blob, origSize, compWidth } = await compressImageToBlob(file, 1200, 0.5);
+  AppState.currentImageBlob = blob;
+  // 预览仍用压缩图
+  const previewUrl = await blobToDataURL(blob);
+  const placeholder = document.getElementById('cameraPlaceholder');
+  placeholder.innerHTML = `<img src="${previewUrl}" alt="设备铭牌">`;
+  placeholder.classList.add('has-image');
   document.getElementById('btnRecognize').disabled = false;
 
-  console.log('图片压缩完成:',
+  console.log('图片压缩完成 (Blob):',
     (origSize / 1024 / 1024).toFixed(1) + 'MB →',
-    (compressed.length * 0.75 / 1024 / 1024).toFixed(2) + 'MB base64,',
-    compWidth + 'px宽');
+    (blob.size / 1024).toFixed(1) + 'KB binary,',
+    compWidth + 'px 宽');
 }
 
 // ============ OCR 引擎（腾讯云 SCF） ============
@@ -718,58 +729,66 @@ const OCR_API_URL = (function() {
 })();
 
 async function startOCR() {
-  if (!AppState.currentImageDataUrl) {
+  if (!AppState.currentImageBlob) {
     showToast('请先拍摄设备铭牌照片', 'warning');
     return;
   }
 
   if (AppState.ocrInProgress) return;
   AppState.ocrInProgress = true;
+  const t0 = performance.now();
 
   document.getElementById('ocrOverlay').style.display = 'flex';
-  document.getElementById('ocrProgressText').textContent = '正在上传到云端识别...';
-  document.getElementById('ocrProgressFill').style.width = '10%';
-  document.getElementById('ocrSubText').textContent = '调用腾讯云OCR（通用印刷体识别）';
+  document.getElementById('ocrProgressText').textContent = '正在上传图片...';
+  document.getElementById('ocrProgressFill').style.width = '15%';
+  document.getElementById('ocrSubText').textContent =
+    (AppState.currentImageBlob.size / 1024).toFixed(0) + 'KB · 二进制直传·更快';
 
   try {
-    document.getElementById('ocrProgressText').textContent = '正在识别中...';
-    document.getElementById('ocrProgressFill').style.width = '30%';
+    const t1 = performance.now();
+    document.getElementById('ocrProgressText').textContent = '云端识别中...';
+    document.getElementById('ocrProgressFill').style.width = '40%';
 
-    const resp = await fetch(OCR_API_URL || '/api/ocr', {
+    const resp = await fetch((OCR_API_URL || '') + '/api/ocr', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'image/jpeg',
         'ngrok-skip-browser-warning': 'true',
       },
-      body: JSON.stringify({ image: AppState.currentImageDataUrl }),
+      body: AppState.currentImageBlob,
     });
+
+    const t2 = performance.now();
+    document.getElementById('ocrProgressText').textContent = '识别完成，提取字段...';
+    document.getElementById('ocrProgressFill').style.width = '85%';
 
     if (!resp.ok) {
       const errData = await resp.json().catch(() => ({}));
       throw new Error(errData.detail || errData.error || `服务器错误 (HTTP ${resp.status})`);
     }
 
-    document.getElementById('ocrProgressText').textContent = '云端识别完成，正在提取字段...';
-    document.getElementById('ocrProgressFill').style.width = '80%';
-
     const data = await resp.json();
     if (!data.success) {
       throw new Error(data.error || 'OCR识别失败');
     }
 
+    const t3 = performance.now();
     AppState.currentOcrText = data.text;
-    document.getElementById('ocrProgressText').textContent = '正在提取字段...';
-    document.getElementById('ocrProgressFill').style.width = '90%';
 
-    // 提取字段（规则引擎不变）
+    // 提取字段
     AppState.currentExtractedData = extractAllFields(data.text);
 
     document.getElementById('ocrProgressFill').style.width = '100%';
+    console.log('⏱️ OCR耗时:', {
+      '上传': (t2 - t1).toFixed(0) + 'ms',
+      '识别+提取': (t3 - t2).toFixed(0) + 'ms',
+      '总计': (t3 - t1).toFixed(0) + 'ms',
+    });
     setTimeout(() => {
       document.getElementById('ocrOverlay').style.display = 'none';
       showResultModal(AppState.currentExtractedData);
       AppState.ocrInProgress = false;
-    }, 300);
+    }, 100);
   } catch (err) {
     document.getElementById('ocrOverlay').style.display = 'none';
     AppState.ocrInProgress = false;
