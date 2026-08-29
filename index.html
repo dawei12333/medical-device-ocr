@@ -584,6 +584,26 @@ document.addEventListener('DOMContentLoaded', () => {
   loadDevices();
   updateStats();
   renderDeviceList();
+
+  // 如果是 file:// 协议加载，提示用户用 localhost:3000 打开
+  if (location.protocol === 'file:') {
+    setTimeout(() => {
+      showToast('⚠️ 请用 http://localhost:3000 打开 PWA，不要用 file:// 协议', 'warning');
+    }, 1500);
+  }
+
+  // 健康检查 + 自动重连（每 10s 重试一次，最多重试 5 次）
+  let retryCount = 0;
+  const healthCheckLoop = setInterval(async () => {
+    await checkServerHealth();
+    if (AppState.serverReady) {
+      retryCount = 0;
+    } else if (++retryCount < 5) {
+      console.log('⏳ 等待 OCR 服务上线... (' + retryCount + '/5)');
+    } else {
+      clearInterval(healthCheckLoop);
+    }
+  }, 10000);
   checkServerHealth();
 
   // 注册Service Worker
