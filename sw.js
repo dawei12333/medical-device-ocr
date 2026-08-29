@@ -1,4 +1,4 @@
-const CACHE_NAME = 'med-device-inventory-v5-force-update';
+const CACHE_NAME = 'med-device-inventory-v6-camera-fix';
 const urlsToCache = [
   './',
   './index.html',
