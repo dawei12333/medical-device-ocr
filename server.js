@@ -57,6 +57,15 @@ if (process.env.TENCENT_SECRET_ID && process.env.TENCENT_SECRET_KEY) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// CORS 头（必须！file:// 协议和跨域请求都要用）
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ngrok-skip-browser-warning');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  next();
+});
+
 // 解析JSON body（限制 10MB）
 app.use(express.json({ limit: '10mb' }));
 // 解析二进制 body（API/ocr 使用，限制 10MB，直接传原始二进制图片）
