@@ -382,8 +382,11 @@ body {
           <span class="camera-icon">📷</span>
           <span class="camera-text">点击拍摄铭牌</span>
           <span class="camera-subtext">支持拍照或从相册选择</span>
-          <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelect(event)">
         </div>
+        <!-- input 必须放在 placeholder 外面！
+             否则 saveDevice() 用 innerHTML 重置 placeholder 时会把它一起删掉，
+             导致第二次点击拍照时 getElementById 返回 null、相机打不开 -->
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelect(event)">
       </div>
       <button class="btn btn-primary" id="btnRecognize" disabled onclick="startOCR()">
         🔍 开始识别
@@ -701,6 +704,20 @@ function blobToDataURL(blob) {
 // ============ 相机 / 图片选择 ============
 function triggerCamera() {
   const input = document.getElementById('cameraInput');
+  if (!input) {
+    // 防御：万一 input 被误删，动态重建，保证相机永远可用
+    console.error('cameraInput 丢失，正在重建...');
+    const rebuilt = document.createElement('input');
+    rebuilt.type = 'file';
+    rebuilt.id = 'cameraInput';
+    rebuilt.accept = 'image/*';
+    rebuilt.setAttribute('capture', 'environment');
+    rebuilt.style.display = 'none';
+    rebuilt.onchange = handleImageSelect;
+    document.getElementById('cameraPlaceholder').parentNode.appendChild(rebuilt);
+    rebuilt.click();
+    return;
+  }
   // 关键：清空 value，确保再次选择同一张图也能触发 change 事件
   input.value = '';
   input.click();
