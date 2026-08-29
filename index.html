@@ -700,7 +700,10 @@ function blobToDataURL(blob) {
 
 // ============ 相机 / 图片选择 ============
 function triggerCamera() {
-  document.getElementById('cameraInput').click();
+  const input = document.getElementById('cameraInput');
+  // 关键：清空 value，确保再次选择同一张图也能触发 change 事件
+  input.value = '';
+  input.click();
 }
 
 async function handleImageSelect(event) {
@@ -721,8 +724,11 @@ async function handleImageSelect(event) {
   };
   origReader.readAsDataURL(file);
 
-  // 后台压缩（1200px宽，JPEG quality 0.5 — 文件骤降 20-50 倍）
-  const { blob, origSize, compWidth } = await compressImageToBlob(file, 1200, 0.5);
+  // 智能压缩：移动端/慢网络用更激进参数（省上传时间和压缩时间）
+  const isMobile = /Android|iPhone|iPad|HarmonyOS|Mobile/i.test(navigator.userAgent);
+  const maxW = isMobile ? 1000 : 1200;
+  const q = isMobile ? 0.4 : 0.5;
+  const { blob, origSize, compWidth } = await compressImageToBlob(file, maxW, q);
   AppState.currentImageBlob = blob;
   // 预览仍用压缩图
   const previewUrl = await blobToDataURL(blob);
@@ -731,10 +737,10 @@ async function handleImageSelect(event) {
   placeholder.classList.add('has-image');
   document.getElementById('btnRecognize').disabled = false;
 
-  console.log('图片压缩完成 (Blob):',
+  console.log('图片压缩完成 (Blob' + (isMobile ? '·移动端' : '·桌面') + '):',
     (origSize / 1024 / 1024).toFixed(1) + 'MB →',
     (blob.size / 1024).toFixed(1) + 'KB binary,',
-    compWidth + 'px 宽');
+    compWidth + 'px 宽, quality ' + q);
 }
 
 // ============ OCR 引擎（腾讯云 SCF） ============
@@ -769,14 +775,23 @@ async function startOCR() {
     document.getElementById('ocrProgressText').textContent = '云端识别中...';
     document.getElementById('ocrProgressFill').style.width = '40%';
 
-    const resp = await fetch((OCR_API_URL || '') + '/api/ocr', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'image/jpeg',
-        'ngrok-skip-browser-warning': 'true',
-      },
-      body: AppState.currentImageBlob,
-    });
+    // 超时保险：25秒未响应则中止，避免手机端网络慢时卡死无法重试
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
+    let resp;
+    try {
+      resp = await fetch((OCR_API_URL || '') + '/api/ocr', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'image/jpeg',
+          'ngrok-skip-browser-warning': 'true',
+        },
+        body: AppState.currentImageBlob,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const t2 = performance.now();
     document.getElementById('ocrProgressText').textContent = '识别完成，提取字段...';
@@ -1462,7 +1477,9 @@ function saveDevice() {
     <span class="camera-subtext">支持拍照或从相册选择</span>`;
   document.getElementById('cameraPlaceholder').classList.remove('has-image');
   document.getElementById('btnRecognize').disabled = true;
+  // 关键：同步清空 Blob，避免残留旧图数据导致第二次识别异常
   AppState.currentImageDataUrl = null;
+  AppState.currentImageBlob = null;
   
   updateStats();
   renderDeviceList();
